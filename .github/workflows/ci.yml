@@ -1,18 +1,22 @@
 name: Default CI
-on: [push, pull_request]
+on: 
+  push:
+    branches:
+      - master
+      - develop/*
 jobs:
   tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [12, 14, 16]
+        node: [12]
     steps:
     - name: Checkout
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
     - name: Setup Nodejs
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node }}
     - name: Install dependencies
@@ -30,13 +34,4 @@ jobs:
     - name: is-es5
       run: npm run is-es5
     - name: Coverage
-      uses: codecov/codecov-action@v1
-    - name: Extract branch name
-      shell: bash
-      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-      id: extract_branch
-    - name: Preview semantic-release version
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        NPM_TOKEN: ${{ secrets.SEMANTIC_RELEASE_NPM_TOKEN }}
-      run: npx semantic-release --dry-run --branches=${{ steps.extract_branch.outputs.branch }}
+      uses: codecov/codecov-action@v2
