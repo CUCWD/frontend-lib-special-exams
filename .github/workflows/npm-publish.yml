@@ -1,0 +1,81 @@
+# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
+# For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
+
+name: Node.js Package
+
+on:
+  release:
+    types: [created]
+
+env:
+  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:      
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js Env
+        run: echo "NODE_VER=`cat .nvmrc`" >> $GITHUB_ENV
+
+      - name: Setup Node.js
+        uses: dcodeIO/setup-node-nvm@v4
+        with:
+          node-version: "${{ env.NODE_VER }}"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create Build
+        run: npm run build
+
+  publish-npm:
+    needs: build
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js Env
+        run: echo "NODE_VER=`cat .nvmrc`" >> $GITHUB_ENV
+
+      - name: Setup Node.js
+        uses: dcodeIO/setup-node-nvm@v4
+        with:
+          node-version: "${{ env.NODE_VER }}"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate package-lock.json changes
+        run: make validate-no-uncommitted-package-lock-changes
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test
+
+      - name: i18n_extract
+        run: npm run i18n_extract
+
+      - name: Coverage
+        uses: codecov/codecov-action@v2
+
+      - name: Create Build
+        run: npm run build
+        
+      - run: git config --global user.name "${{ github.actor }}"
+      - run: git config --global user.email "github-action-${{ github.actor }}@users.noreply.github.com"
+
+      - name: Tag NPM version
+        run: npm version --allow-same-version ${{ github.event.release.tag_name }}
+
+      - name: Publishing to npmjs.
+        run: npm publish --userconfig .npmrc --registry https://registry.npmjs.org/
