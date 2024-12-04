@@ -1,5 +1,5 @@
 {
-  "name": "@edx/frontend-lib-special-exams",
+  "name": "@cucwd-prod/frontend-lib-special-exams",
   "version": "1.14.0-nutmeg.2",
   "description": "Special exams lib",
   "main": "dist/index.js",
