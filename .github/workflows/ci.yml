@@ -4,6 +4,10 @@ on:
     branches:
       - master
       - develop/*
+
+env:
+  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+
 jobs:
   tests:
     runs-on: ubuntu-latest
